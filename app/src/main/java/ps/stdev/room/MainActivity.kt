@@ -6,10 +6,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.widget.Toast
+import android.widget.Toolbar
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,15 +23,18 @@ class MainActivity : AppCompatActivity() ,BookListAdapter.OnDeleteClickListener 
 
     private lateinit var bookViewModel: BookViewModel
     private lateinit var mRecyclerView : RecyclerView
+    private lateinit var bookListAdapter : BookListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        setSupportActionBar(findViewById(R.id.toolbar))
+
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
 
         mRecyclerView = findViewById(R.id.recycler_view)
 
-        val bookListAdapter = BookListAdapter(this,this)
+        bookListAdapter = BookListAdapter(this,this)
         recycler_view.adapter = bookListAdapter
         recycler_view.layoutManager = LinearLayoutManager(this) //i can also add this to the layout file
 
@@ -65,34 +70,42 @@ class MainActivity : AppCompatActivity() ,BookListAdapter.OnDeleteClickListener 
         super.onActivityResult(requestCode, resultCode, data)
 
         if(requestCode == NEW_NOTE_ACTIVITY_REQUEST_CODE && resultCode== Activity.RESULT_OK){
-            val id = UUID.randomUUID().toString()
-            val title = data?.getStringExtra(NewBookActivity.TITLE)
-            val details = data?.getStringExtra(NewBookActivity.DETAILS)
-            val description = data?.getStringExtra(NewBookActivity.DESCRIPTION)
-            val currentTime = Calendar.getInstance().time
-
-            val book = Book(id, title!!, details!!,description!!,currentTime)
-            bookViewModel.insert(book = book)
-
-            Toast.makeText(this,"Saved",Toast.LENGTH_LONG).show()
+            saveNote(data)
 
         } else if (requestCode == UPDATE_NOTE_ACTIVITY_REQUEST_CODE && resultCode == Activity.RESULT_OK){
-            val id = data?.getStringExtra(EditBookActivity.ID)
-            val title = data?.getStringExtra(EditBookActivity.UPDATED_TITLE)
-            val details = data?.getStringExtra(EditBookActivity.UPDATED_DETAIL)
-            val description = data?.getStringExtra(EditBookActivity.UPDATED_DESCRIPTION)
-            val currentTime = Calendar.getInstance().time
-
-            val book = Book(id!!, title!!, details!!,description!!,currentTime)
-
-            //Code to update
-            bookViewModel.update(book)
-            Toast.makeText(this,"Updated ",Toast.LENGTH_LONG).show()
+            updateNote(data)
         }
 
         else {
             Toast.makeText(this,"Not `Saved",Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun updateNote(data: Intent?) {
+        val id = data?.getStringExtra(EditBookActivity.ID)
+        val title = data?.getStringExtra(EditBookActivity.UPDATED_TITLE)
+        val details = data?.getStringExtra(EditBookActivity.UPDATED_DETAIL)
+        val description = data?.getStringExtra(EditBookActivity.UPDATED_DESCRIPTION)
+        val currentTime = Calendar.getInstance().time
+
+        val book = Book(id!!, title!!, details!!, description!!, currentTime)
+
+        //Code to update
+        bookViewModel.update(book)
+        Toast.makeText(this, "Updated ", Toast.LENGTH_LONG).show()
+    }
+
+    private fun saveNote(data: Intent?) {
+        val id = UUID.randomUUID().toString()
+        val title = data?.getStringExtra(NewBookActivity.TITLE)
+        val details = data?.getStringExtra(NewBookActivity.DETAILS)
+        val description = data?.getStringExtra(NewBookActivity.DESCRIPTION)
+        val currentTime = Calendar.getInstance().time
+
+        val book = Book(id, title!!, details!!, description!!, currentTime)
+        bookViewModel.insert(book = book)
+
+        Toast.makeText(this, "Saved", Toast.LENGTH_LONG).show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -110,8 +123,21 @@ class MainActivity : AppCompatActivity() ,BookListAdapter.OnDeleteClickListener 
         val componentName = ComponentName(this,SearchResultActivity::class.java)
         val searchableInfo = searchManager.getSearchableInfo(componentName)
         searchView.setSearchableInfo(searchableInfo)
+        handleIntent(intent)
 
         return true
+    }
+
+    private fun handleIntent(intent: Intent){
+        if (Intent.ACTION_SEARCH == intent.action){
+            val searchQuery = intent.getStringExtra(SearchManager.QUERY)
+            //Log.i(TAG, "handleIntent: Search Query is $searchQuery")
+            bookViewModel.searchTitleOrDetails("%$searchQuery%")?.observe(this, androidx.lifecycle.Observer { books->
+                books?.let {
+                    bookListAdapter?.setBooks(books)
+                }
+            })
+        }
     }
 
 //    override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -128,5 +154,4 @@ class MainActivity : AppCompatActivity() ,BookListAdapter.OnDeleteClickListener 
         bookViewModel.delete(myBook)
         Toast.makeText(this,"Deleted!",Toast.LENGTH_LONG).show()
     }
-
 }

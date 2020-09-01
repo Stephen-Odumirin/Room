@@ -44,13 +44,13 @@ class BookListAdapter(val context: Context, private val onDeleteClickListener: O
         fun setData(title: String, details : String, position: Int,description: String?,lastUpdated: Date?){
             itemView.text_title_view.text = title
             itemView.text_details_view.text = details
-            itemView.text_details_view.text = description
+            itemView.text_description_view.text = description
             itemView.text_last_updated.text = getFormattedDate(lastUpdated!!)
             this.pos = position
         }
 
         fun setListeners() {
-            itemView.setOnClickListener {
+            itemView.item_card_view.setOnClickListener {
                val intent = Intent(context,EditBookActivity::class.java)
                 intent.putExtra("id",bookList[pos].id)
                 intent.putExtra("title",bookList[pos].title)

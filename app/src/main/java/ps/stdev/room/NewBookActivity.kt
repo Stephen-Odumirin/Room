@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import kotlinx.android.synthetic.main.activity_new_book.*
+import java.util.*
 
 class NewBookActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,14 +24,17 @@ class NewBookActivity : AppCompatActivity() {
             } else {
                 val title = text_title.text.toString()
                 val details = text_details.text.toString()
+                val description = text_description.text.toString()
+                val currentTime = Calendar.getInstance().time
+
 
                 resultIntent.putExtra(TITLE,title)
                 resultIntent.putExtra(DETAILS,details)
+                resultIntent.putExtra(DESCRIPTION,description)
+                resultIntent.putExtra(TIME,currentTime)
 
                 setResult(Activity.RESULT_OK,resultIntent)
             }
-
-            finish()
         }
     }
 
@@ -38,5 +42,6 @@ class NewBookActivity : AppCompatActivity() {
         const val DESCRIPTION = "new_description"
         const val TITLE = "new_title"
         const val DETAILS = "new_details"
+        const val TIME = "new_time"
     }
 }

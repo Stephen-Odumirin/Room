@@ -36,6 +36,10 @@ class BookViewModel(application: Application) : AndroidViewModel(application) {
         //DeleteAsyncTask(bookDao).execute(book)
     }
 
+    fun searchTitleOrDetails(searchQuery: String) : LiveData<List<Book>>? {
+        return bookRepository.searchTitleOrDetails(searchQuery)
+    }
+
 //    companion object{
 //        private class InsertAsyncTask(private val bookDao: BookDao) : AsyncTask<Book,Void,Void>(){
 //            override fun doInBackground(vararg params: Book?): Void? {
