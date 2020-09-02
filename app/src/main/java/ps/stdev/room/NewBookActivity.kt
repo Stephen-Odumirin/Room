@@ -35,6 +35,7 @@ class NewBookActivity : AppCompatActivity() {
 
                 setResult(Activity.RESULT_OK,resultIntent)
             }
+            finish()
         }
     }
 
